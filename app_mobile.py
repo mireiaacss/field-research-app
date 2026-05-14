@@ -61,29 +61,52 @@ if st.button("Generate & Submit Report", use_container_width=True):
             pdf = FPDF()
             pdf.add_page()
             
-            # Title
-            pdf.set_font("Arial", 'B', 16)
-            pdf.cell(200, 10, txt="Field Research Discovery Report", ln=True, align='C')
+            # 1. Green Header Box
+            pdf.set_fill_color(15, 135, 45) # Dark green matching the example
+            pdf.set_text_color(255, 255, 255) # White text
+            pdf.set_font("Arial", 'B', 14)
+            pdf.cell(0, 20, txt="FIELD REPORT", ln=True, align='C', fill=True)
+            pdf.ln(10)
             
-            # Metadata
-            pdf.set_font("Arial", size=12)
-            pdf.cell(200, 10, txt=f"Researcher: {name}", ln=True)
-            pdf.cell(200, 10, txt=f"Title: {title}", ln=True)
-            pdf.cell(200, 10, txt=f"Coordinates: Latitude {lat}, Longitude {lon}", ln=True)
+            # 2. Researcher & Date Row
+            current_date = pd.Timestamp.now().strftime("%d/%m/%Y") # Using pandas to avoid new imports
+            pdf.set_text_color(0, 0, 0) # Back to black text
+            pdf.set_font("Arial", 'B', 10)
             
-            # Description
+            # Save Y position to keep them on the same line
+            y_before = pdf.get_y()
+            pdf.cell(100, 5, txt=f"Researcher: {name}", align='L')
+            
+            # Move to the right side for the date
+            pdf.set_xy(100, y_before)
+            pdf.cell(0, 5, txt=f"Date: {current_date}", align='R', ln=True)
+            
+            # 3. Coordinates
+            pdf.set_font("Arial", '', 8)
+            pdf.cell(0, 5, txt=f"Coordinates: Lat {lat}, Lon {lon}", ln=True)
+            pdf.ln(3)
+            
+            # 4. Divider Line
+            pdf.line(10, pdf.get_y(), 200, pdf.get_y())
             pdf.ln(5)
-            pdf.multi_cell(0, 10, txt=f"Description:\n{description}")
-            pdf.ln(5)
+            
+            # 5. Finding & Observations Text
+            pdf.set_font("Arial", 'B', 12)
+            pdf.cell(0, 8, txt=f"Finding: {title}", ln=True)
+            
+            pdf.set_font("Arial", 'B', 10)
+            pdf.cell(0, 6, txt="Observations:", ln=True)
+            
+            pdf.set_font("Arial", '', 10)
+            pdf.multi_cell(0, 5, txt=description)
+            pdf.ln(10)
             
             # Write photo from memory to a local file so FPDF can read it
             with open("temp_evidence.jpg", "wb") as f:
                 f.write(photo.getbuffer())
                 
-            # Add image to PDF
-            pdf.image("temp_evidence.jpg", x=10, w=100)
+            pdf.image("temp_evidence.jpg", x=55, w=100)
             
-            # Output PDF to byte string for Streamlit download
             pdf_bytes = pdf.output(dest='S').encode('latin-1')
             
             st.success(f"Hello {name}, your report is ready!")
